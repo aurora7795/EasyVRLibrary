@@ -80,7 +80,7 @@ namespace EasyVRLibrary
 
         private static bool ReceiveArgument(out char response)
         {
-            SendCommand((char) ARG_ACK);
+            SendCommand((char)ARG_ACK);
             response = GetResponse();
             return response >= ARG_MIN && response <= ARG_MAX;
         }
@@ -487,24 +487,24 @@ namespace EasyVRLibrary
         /// </summary>
         /// <param name="mask">mask is a variable to hold the group mask when the function returns</param>
         /// <returns>true if the operation is successful</returns>
-       //public bool GetGroupMask(out uint mask)
-       // {
-       //     SendCommand(CMD_MASK_SD);
-       //     mask = 0;
-       //     if (GetResponse() != STS_MASK) return false;
-            
-       //     for (var i = 0; i < 4; ++i)
-       //     {
-       //         char rx ;
-       //         if (!ReceiveArgument(out rx))
-       //             return false;
-       //         ((int)mask)[i] |= rx & 0x0F;
-       //         if (!ReceiveArgument(out rx))
-       //             return false;
-       //         ((int)mask)[i] |= (rx << 4) & 0xF0;
-       //     }
-       //     return true;
-       // }
+        //public bool GetGroupMask(out uint mask)
+        // {
+        //     SendCommand(CMD_MASK_SD);
+        //     mask = 0;
+        //     if (GetResponse() != STS_MASK) return false;
+
+        //     for (var i = 0; i < 4; ++i)
+        //     {
+        //         char rx ;
+        //         if (!ReceiveArgument(out rx))
+        //             return false;
+        //         ((int)mask)[i] |= rx & 0x0F;
+        //         if (!ReceiveArgument(out rx))
+        //             return false;
+        //         ((int)mask)[i] |= (rx << 4) & 0xF0;
+        //     }
+        //     return true;
+        // }
 
         /// <summary>
         /// Gets the number of commands in the specified group.
@@ -514,7 +514,7 @@ namespace EasyVRLibrary
         public int GetCommandCount(int group)
         {
             if (group < 0 || group > 16) throw new ArgumentOutOfRangeException(nameof(group));
-            
+
             SendCommand(CMD_COUNT_SD);
             SendArgument(group);
 
@@ -567,7 +567,7 @@ namespace EasyVRLibrary
         public bool DumpGrammar(sbyte grammar, ref byte flags, ref byte count)
         {
             if (grammar < 0 || grammar > 31) throw new ArgumentOutOfRangeException(nameof(grammar));
-            
+
             SendCommand(CMD_DUMP_SI);
             SendArgument(grammar);
 
@@ -700,7 +700,7 @@ namespace EasyVRLibrary
             if (_status._command) return (sbyte)_value;
             return -1;
         }
-        
+
         /// <summary>
         /// Gets the recognised word index if any, from built-in sets or custom grammars.
         /// </summary>
@@ -710,7 +710,7 @@ namespace EasyVRLibrary
             if (_status._builtin) return (sbyte)_value;
             return -1;
         }
-        
+
         /// <summary>
         /// Gets the index of the received SonicNet token if any.
         /// </summary>
@@ -721,7 +721,7 @@ namespace EasyVRLibrary
             if (_status._token) return (short)_value;
             return -1;
         }
-        
+
         /// <summary>
         /// Gets the last error code if any.
         /// </summary>
@@ -731,7 +731,7 @@ namespace EasyVRLibrary
             if (_status._error) return (short)_value;
             return -1;
         }
-        
+
         /// <summary>
         /// Retrieves the timeout indicator.
         /// </summary>
@@ -741,7 +741,7 @@ namespace EasyVRLibrary
             return _status._timeout;
         }
 
-       /// <summary>
+        /// <summary>
         ///  Retrieves the wake-up indicator (only valid after #hasFinished() has been called).
         /// </summary>
         /// <returns>true if the module has been awakened from sleep mode</returns>
@@ -749,7 +749,7 @@ namespace EasyVRLibrary
         {
             return _status._awakened;
         }
-        
+
         /// <summary>
         /// Retrieves the conflict indicator.
         /// </summary>
@@ -758,7 +758,7 @@ namespace EasyVRLibrary
         {
             return _status._conflict;
         }
-        
+
         /// <summary>
         ///  Retrieves the memory full indicator (only valid after #addCommand() returned false).
         /// </summary>
@@ -767,7 +767,7 @@ namespace EasyVRLibrary
         {
             return _status._memfull;
         }
-        
+
         /// <summary>
         ///   Retrieves the invalid protocol indicator.
         /// </summary>
@@ -831,7 +831,7 @@ namespace EasyVRLibrary
 
 
         // sound table functions
-        
+
         /// <summary>
         /// Starts listening for a SonicNet token. Manually check for completion with #hasFinished().
         /// </summary>
@@ -850,7 +850,7 @@ namespace EasyVRLibrary
             SendArgument((timeout >> 5) & 0x1F);
             SendArgument(timeout & 0x1F);
         }
-        
+
         /// <summary>
         /// Starts immediate playback of a SonicNet token. Manually check for completion with #hasFinished().
         /// </summary>
@@ -881,18 +881,18 @@ namespace EasyVRLibrary
             SendArgument((int)bits);
             SendArgument(token);
         }
-        
+
         /// <summary>
         /// Plays a SonicNet token and waits for completion.
         /// </summary>
         /// <param name="bits">bits (4 or 8) specifies the length of trasmitted token</param>
         /// <param name="token">token is the index of the SonicNet token to play (0-255 for 8-bit tokens or 0-15 for 4-bit tokens)</param>
         /// <returns>true if the operation is successful</returns>
-        bool SendToken(sbyte bits, byte token)
+        public bool SendToken(sbyte bits, byte token)
         {
             throw new NotImplementedException();
         }
-        
+
         /// <summary>
         /// Schedules playback of a SonicNet token after the next sound starts playing.
         /// </summary>
@@ -901,7 +901,7 @@ namespace EasyVRLibrary
         /// <param name="delay">delay (1-28090) is the time in milliseconds at which to send the token, since the beginning of the next sound playback</param>
         /// <returns>true if the operation is successful</returns>
         /// <remarks>The scheduled token remains valid for one operation only, so you have to call #playSound() or #playSoundAsync() immediately after this function.</remarks>
-       public bool EmbedToken(sbyte bits, byte token, ushort delay)
+        public bool EmbedToken(sbyte bits, byte token, ushort delay)
         {
             throw new NotImplementedException();
         }
@@ -912,8 +912,11 @@ namespace EasyVRLibrary
         /// <param name="index">index is the index of the target sound in the sound table</param>
         /// <param name="volume">volume (0-31) may be one of the values in #SoundVolume</param>
         /// <remarks>The module is busy until playback completes and it cannot accept other commands.You can interrupt playback with #stop().</remarks>
-        public void PlaySoundAsync(short index, sbyte volume) { }
-        
+        public void PlaySoundAsync(short index, sbyte volume)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Plays a sound from the sound table and waits for completion
         /// </summary>
@@ -932,7 +935,7 @@ namespace EasyVRLibrary
 
             return GetResponse() == STS_SUCCESS;
         }
-        
+
         /// <summary>
         ///  Retrieves the name of the sound table and the number of sounds it contains
         /// </summary>
@@ -964,7 +967,7 @@ namespace EasyVRLibrary
             var response = GetResponse();
             return response == STS_SUCCESS;
         }
-        
+
         /// <summary>
         ///  Empties internal memory for custom commands/groups and messages.
         /// </summary>
@@ -977,7 +980,7 @@ namespace EasyVRLibrary
         {
             throw new NotImplementedException();
         }
-        
+
         /// <summary>
         /// Empties internal memory for custom commands/groups only. Messages are not affected.
         /// </summary>
@@ -991,144 +994,165 @@ namespace EasyVRLibrary
             throw new NotImplementedException();
         }
 
-        /**
-          Empties internal memory used for messages only. Commands/groups are not affected.
-          @param wait specifies whether to wait until the operation is complete (or times out)
-          @retval true if the operation is successful
-          @note It will take some time for the whole process to complete (EasyVR3 is faster)
-          and it cannot be interrupted. During this time the module cannot
-          accept any other command. The sound table and custom grammars data is not affected.
-        */
-        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
-        //  bool resetMessages(bool wait);
-        /**
-          Performs a memory check for consistency.
-          @retval true if the operation is successful
-          @note If a memory write or erase operation does not complete due to unexpected
-          conditions, like power losses, the memory contents may be corrupted. When the
-          check fails #getError() returns #ERR_CUSTOM_INVALID.
-        */
-        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
-        //  bool checkMessages();
-        /**
-          Performs a memory check and attempt recovery if necessary. Incomplete data will
-          be erased. Custom commands/groups are not affected.
-          @param wait specifies whether to wait until the operation is complete (or times out)
-          @retval true if the operation is successful
-          @note It will take some time for the whole process to complete (several seconds)
-          and it cannot be interrupted. During this time the module cannot
-          accept any other command. The sound table and custom grammars data is not affected.
-        */
-        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
-        //  bool fixMessages(bool wait);
-        /**
-          Starts recording a message. Manually check for completion with #hasFinished().
-          @param index (0-31) is the index of the target message slot
-          @param bits (8) specifies the audio format (see #MessageType)
-          @param timeout (0-31) is the maximum recording time (0=infinite)
-          @note The module is busy until recording times out or the end of memory is
-          reached. You can interrupt an ongoing recording with #stop().
-        */
-        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
-        //  void recordMessageAsync(sbyte index, sbyte bits, sbyte timeout);
-        /**
-          Starts playback of a recorded message. Manually check for completion with #hasFinished().
-          @param index (0-31) is the index of the target message slot
-          @param speed (0-1) may be one of the values in #MessageSpeed
-          @param atten (0-3) may be one of the values in #MessageAttenuation
-          @note The module is busy until playback completes and it cannot
-          accept other commands. You can interrupt playback with #stop().
-        */
-        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
-        //  void playMessageAsync(sbyte index, sbyte speed, sbyte atten);
-        /**
-          Erases a recorded message. Manually check for completion with #hasFinished().
-          @param index (0-31) is the index of the target message slot
-          @retval true if the operation is successful
-        */
-        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
-        //  void eraseMessageAsync(sbyte index);
-        /**
-          Retrieves the type and length of a recorded message
-          @param index (0-31) is the index of the target message slot
-          @param type (0,8) is a variable that holds the message format when the
-          function returns (see #MessageType)
-          @param length is a variable that holds the message length in bytes when
-          the function returns
-          @retval true if the operation is successful
-          @note The specified message may have errors. Use #getError() when the
-          function fails, to know the reason of the failure.
-        */
-        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
-        //  bool dumpMessage(sbyte index, ref sbyte type, ref int length);
-        /**
-          Starts real-time lip-sync on the input voice signal.
-          Retrieve output values with #fetchMouthPosition() or abort with #stop().
-          @param threshold (0-1023) is a measure of the strength of the input signal
-          below which the mouth is considered to be closed (see #LipsyncThreshold,
-          adjust based on microphone settings, distance and background noise)
-          @param timeout (0-255) is the maximum duration of the function in seconds,
-          0 means infinite
-          @retval true if the operation is successfully started
-        */
-        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
-        //  bool realtimeLipsync(short threshold, byte timeout);
-        /**
-          Retrieves the current mouth position during lip-sync.
-          @param value (0-31) is filled in with the current mouth opening position
-          @retval true if the operation is successful, false if lip-sync has finished
-        */
-        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
-        //  bool fetchMouthPosition(ref sbyte value);
+        /// <summary>
+        /// Empties internal memory used for messages only. Commands/groups are not affected.
+        /// </summary>
+        /// <param name="wait">specifies whether to wait until the operation is complete (or times out)</param>
+        /// <returns>true if the operation is successful</returns>
+        /// <remarks>It will take some time for the whole process to complete (EasyVR3 is faster) and it cannot be interrupted.
+        /// During this time the module cannot accept any other command. The sound table and custom grammars data is not affected.</remarks>
+        public bool ResetMessages(bool wait)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs a memory check for consistency.
+        /// </summary>
+        /// <returns>true if the operation is successful</returns>
+        /// <remarks>If a memory write or erase operation does not complete due to unexpecte conditions, like power losses, the memory contents may be corrupted.
+        /// When the check fails #getError() returns #ERR_CUSTOM_INVALID.</remarks>
+        public bool CheckMessages()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs a memory check and attempt recovery if necessary. Incomplete data wil be erased.Custom commands/groups are not affected.
+        /// </summary>
+        /// <param name="wait">specifies whether to wait until the operation is complete (or times out)</param>
+        /// <returns>true if the operation is successful</returns>
+        /// <remarks>It will take some time for the whole process to complete (several seconds) and it cannot be interrupted.
+        /// During this time the module cannot accept any other command. The sound table and custom grammars data is not affected.</remarks>
+        public bool FixMessages(bool wait)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Starts recording a message. Manually check for completion with #hasFinished().
+        /// </summary>
+        /// <param name="index">index (0-31) is the index of the target message slot</param>
+        /// <param name="bits">bits (8) specifies the audio format (see #MessageType)</param>
+        /// <param name="timeout">timeout (0-31) is the maximum recording time (0=infinite)</param>
+        /// <remarks>The module is busy until recording times out or the end of memory is reached.You can interrupt an ongoing recording with #stop().</remarks>
+        public void RecordMessageAsync(sbyte index, sbyte bits, sbyte timeout)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Starts playback of a recorded message. Manually check for completion with #hasFinished().
+        /// </summary>
+        /// <param name="index">(0-31) is the index of the target message slot</param>
+        /// <param name="speed">(0-1) may be one of the values in #MessageSpeed</param>
+        /// <param name="atten">(0-3) may be one of the values in #MessageAttenuation</param>
+        /// <remarks>The module is busy until playback completes and it cannot accept other commands.You can interrupt playback with #stop().</remarks>
+        public void PlayMessageAsync(sbyte index, sbyte speed, sbyte atten)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Erases a recorded message. Manually check for completion with #hasFinished().
+        /// </summary>
+        /// <param name="index">(0-31) is the index of the target message slot</param>
+        public void EraseMessageAsync(sbyte index)
+        {
+
+        }
+
+        /// <summary>
+        /// Retrieves the type and length of a recorded message
+        /// </summary>
+        /// <param name="index">(0-31) is the index of the target message slot</param>
+        /// <param name="type">(0,8) is a variable that holds the message format when the function returns(see #MessageType)</param>
+        /// <param name="length">length is a variable that holds the message length in bytes whe the function returns</param>
+        /// <remarks>The specified message may have errors. Use #getError() when the function fails, to know the reason of the failure.</remarks>
+        /// <returns></returns>
+        public bool DumpMessage(sbyte index, ref sbyte type, ref int length)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Starts real-time lip-sync on the input voice signal. Retrieve output values with #fetchMouthPosition() or abort with #stop().
+        /// </summary>
+        /// <param name="threshold">(0-1023) is a measure of the strength of the input signal below which the mouth is considered to be closed(see #LipsyncThreshold, 
+        /// adjust based on microphone settings, distance and background noise)</param>
+        /// <param name="timeout">(0-255) is the maximum duration of the function in seconds, 0 means infinite</param>
+        /// <returns>true if the operation is successfully started</returns>
+        public bool RealtimeLipsync(short threshold, byte timeout)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Retrieves the current mouth position during lip-sync.
+        /// </summary>
+        /// <param name="value">(0-31) is filled in with the current mouth opening position</param>
+        /// <returns>true if the operation is successful, false if lip-sync has finished</returns>
+        public bool FetchMouthPosition(ref sbyte value)
+        {
+            throw new NotImplementedException();
+        }
+
         // service functions
-        /**
-          Retrieves all internal data associated to a custom command.
-          @param group (0-16) is the target group, or one of the values in #Groups
-          @param index (0-31) is the index of the command within the selected group
-          @param data points to an array of at least 258 bytes that holds the
-          command raw data
-          @retval true if the operation is successful
-        */
-        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
-        //  bool exportCommand(sbyte group, sbyte index, ref byte data);
-        /**
-          Overwrites all internal data associated to a custom command.
-          When commands are imported this way, their training should be tested again
-          with #verifyCommand()
-          @param group (0-16) is the target group, or one of the values in #Groups
-          @param index (0-31) is the index of the command within the selected group
-          @param data points to an array of at least 258 bytes that holds the
-          command raw data
-          @retval true if the operation is successful
-        */
-        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
-        //  bool importCommand(sbyte group, sbyte index, byte data);
-        /**
-          Verifies training of a custom command (useful after import).
-          Similarly to #trainCommand(), you should check results after #hasFinished()
-          returns true
-          @param group (0-16) is the target group, or one of the values in #Groups
-          @param index (0-31) is the index of the command within the selected group
-        */
-        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
-        //  void verifyCommand(sbyte group, sbyte index);
+
+        /// <summary>
+        /// Retrieves all internal data associated to a custom command.
+        /// </summary>
+        /// <param name="group">(0-16) is the target group, or one of the values in #Groups</param>
+        /// <param name="index">(0-31) is the index of the command within the selected group</param>
+        /// <param name="data">points to an array of at least 258 bytes that holds the command raw data</param>
+        /// <returns>true if the operation is successful</returns>
+        public bool ExportCommand(sbyte group, sbyte index, ref byte data)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Overwrites all internal data associated to a custom command. When commands are imported this way, their training should be tested again with #verifyCommand()
+        /// </summary>
+        /// <param name="group">(0-16) is the target group, or one of the values in #Groups</param>
+        /// <param name="index">(0-31) is the index of the command within the selected group </param>
+        /// <param name="data">data points to an array of at least 258 bytes that holds the command raw data</param>
+        /// <returns>true if the operation is successful</returns>
+        public bool ImportCommand(sbyte group, sbyte index, byte data)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Verifies training of a custom command (useful after import). Similarly to #trainCommand(), you should check results after #hasFinished() returns true
+        /// </summary>
+        /// <param name="group">(0-16) is the target group, or one of the values in #Groups</param>
+        /// <param name="index">(0-31) is the index of the command within the selected group</param>
+        public void VerifyCommand(sbyte group, sbyte index)
+        {
+            throw new NotImplementedException();
+        }
+
         // bridge mode
-        /**
-          Tests if bridge mode has been requested on the specified port
-          @param port is the target serial port (usually the PC serial port)
-          @retval non zero if bridge mode should be started
-          @note The %EasyVR Commander software can request bridge mode when connected
-          to the specified serial port, with a special handshake sequence.
-        */
-        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
-        //  int bridgeRequested(Stream port);
-        /**
-          Performs bridge mode between the EasyVR serial port and the specified port
-          in a continuous loop. It can be aborted by sending a question mark ('?') on
-          the target port.
-          @param port is the target serial port (usually the PC serial port)
-        */
-        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
-        //  void bridgeLoop(Stream port);
+
+        /// <summary>
+        /// Tests if bridge mode has been requested on the specified port
+        /// </summary>
+        /// <param name="port">is the target serial port (usually the PC serial port)</param>
+        /// <returns>non zero if bridge mode should be started</returns>
+        /// <remarks>The %EasyVR Commander software can request bridge mode when connected to the specified serial port, with a special handshake sequence.</remarks>
+        public int BridgeRequested(Stream port)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs bridge mode between the EasyVR serial port and the specified por in a continuous loop.It can be aborted by sending a question mark('?') on the target port.
+        /// </summary>
+        /// <param name="port">is the target serial port (usually the PC serial port)</param>
+        public void BridgeLoop(Stream port)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
