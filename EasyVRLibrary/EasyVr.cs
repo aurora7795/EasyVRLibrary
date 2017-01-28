@@ -192,9 +192,7 @@ namespace EasyVRLibrary
             var rx = GetResponse();
             return rx == STS_INTERR || rx == STS_SUCCESS;
         }
-
-
-
+        
         /// <summary>
         ///  Sets the language to use for recognition of built-in words.
         /// </summary>

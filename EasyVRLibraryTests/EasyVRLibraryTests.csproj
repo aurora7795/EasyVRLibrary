@@ -54,6 +54,12 @@
     <Compile Include="EasyVrTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\EasyVRLibrary\EasyVRLibrary.csproj">
+      <Project>{7bcba997-8ff3-4ba7-bfa4-8e89278ef81e}</Project>
+      <Name>EasyVRLibrary</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>
