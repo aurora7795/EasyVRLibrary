@@ -319,6 +319,8 @@ namespace EasyVRLibrary
         /// <returns>true if the operation is successful</returns>
         public bool SetDelay(ushort millis)
         {
+            if (millis >1000) throw new ArgumentOutOfRangeException(nameof(millis));
+
             SendCommand(CMD_DELAY);
             if (millis <= 10)
                 SendArgument((sbyte)millis);
@@ -380,9 +382,12 @@ namespace EasyVRLibrary
             var rx = GetResponse();
             if (rx == STS_SUCCESS)
                 return true;
+
             _status.v = 0;
+
             if (rx == STS_OUT_OF_MEM)
                 _status._memfull = true;
+
             return false;
         }
 
