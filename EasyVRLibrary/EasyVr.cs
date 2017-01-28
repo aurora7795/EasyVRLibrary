@@ -18,13 +18,18 @@ namespace EasyVRLibrary
 
         private int _value; // store last result or error code
 
-        public EasyVr()
+        public EasyVr(string portName, Baudrate baudRate = Baudrate.B9600)
         {
             if (_serialPort != null) return;
             // Create the serial port with basic settings
-            _serialPort = new SerialPort("COM3", 9600, Parity.None, 8, StopBits.One);
+            _serialPort = new SerialPort(portName, (int)baudRate, Parity.None, 8, StopBits.One);
 
             _serialPort.Open();
+
+            _value = -1;
+            _group = -1;
+            _id = -1;
+            _status.v = 0;
         }
 
         public void ClosePort()
@@ -157,23 +162,7 @@ namespace EasyVRLibrary
             _status._error = true;
             _value = 0;
         }
-
-
-        /**
-          Creates an EasyVR object, using a communication object implementing the 
-          #Stream interface (such as #HardwareSerial, or the modified #SoftwareSerial
-          and #NewSoftSerial).
-          @param s the Stream object to use for communication with the EasyVR module
-        */
-
-        public EasyVr(Stream s)
-        {
-            _value = -1;
-            _group = -1;
-            _id = -1;
-            _status.v = 0;
-        }
-
+        
         /// <summary>
         ///   Detects an EasyVR module, waking it from sleep mode and checking it responds correctly.
         /// </summary>
@@ -222,7 +211,7 @@ namespace EasyVRLibrary
         /// <summary>
         /// Sets the timeout to use for any recognition task.
         /// </summary>
-        /// <param name="seconds">seconds (0-31) is the maximum time the module keep listening</param>
+        /// <param name="seconds">(0-31) is the maximum time the module keep listening</param>
         /// <returns>true if the operation is successful</returns>
         public bool SetTimeout(int seconds)
         {
@@ -251,7 +240,7 @@ namespace EasyVRLibrary
         /// <summary>
         ///  Sets the confidence threshold to use for recognition of built-in words or custom grammars.
         /// </summary>
-        /// <param name="knob">knob (0-4) is one of values in #Knob</param>
+        /// <param name="knob">(0-4) is one of values in #Knob</param>
         /// <returns>true if the operation is successful</returns>
         public bool SetKnob(Knob knob)
         {
@@ -265,7 +254,7 @@ namespace EasyVRLibrary
         /// Gets the module identification number (firmware version).
         /// </summary>
         /// <returns>Module ID for the easy VR module</returns>
-        public ModuleId GetVersionId()
+        public ModuleId GetId()
         {
             SendCommand(STS_ID);
 
