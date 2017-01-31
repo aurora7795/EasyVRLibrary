@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO.Ports;
 using System.Windows;
 using EasyVRLibrary;
 
@@ -11,11 +12,27 @@ namespace TestHarness
     {
         private EasyVr _tempVr;
 
-        public bool Enabled { get; set; }
+       
+
+        public bool Enabled
+        {
+            get { return (bool)GetValue(MyBoolProperty); }
+            set { SetValue(MyBoolProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for myText.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty MyBoolProperty =
+            DependencyProperty.Register("Enabled", typeof(bool), typeof(MainWindow), new PropertyMetadata(null));
 
         public MainWindow()
         {
             InitializeComponent();
+
+            string[] ports = SerialPort.GetPortNames();
+            foreach (string port in ports)
+            {
+                PortComboBox.Items.Add(port);
+            }
 
         }
 
@@ -28,7 +45,7 @@ namespace TestHarness
         {
             try
             {
-                _tempVr = new EasyVr(PortComboBox.SelectionBoxItemStringFormat);
+                _tempVr = new EasyVr(PortComboBox.SelectedItem.ToString());
 
                 Enabled = true;
             }
