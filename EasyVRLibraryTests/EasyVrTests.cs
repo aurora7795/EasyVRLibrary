@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EasyVRLibrary;
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using static EasyVRLibrary.Protocol;
 
@@ -39,8 +40,10 @@ namespace EasyVRLibrary.Tests
         {
             //Arrange
             var tempVr = new EasyVr(_comPort);
+            tempVr.ResetAll();
+
             //Act
-            var response = tempVr.AddCommand(3, 12);
+            var response = tempVr.AddCommand(0,0);
             //Assert
             Assert.IsTrue(response);
         }
@@ -81,8 +84,12 @@ namespace EasyVRLibrary.Tests
         {
             //Arrange
             var tempVr = new EasyVr(_comPort);
+            tempVr.ResetAll();
+
+            tempVr.AddCommand(1, 0);
+
             //Act
-            var response = tempVr.EraseCommand(3, 12);
+            var response = tempVr.EraseCommand(1, 0);
             //Assert
             Assert.IsTrue(response);
         }
@@ -200,8 +207,11 @@ namespace EasyVRLibrary.Tests
         {
             //Arrange
             var tempVr = new EasyVr(_comPort);
+            tempVr.ResetAll();
+
+            tempVr.AddCommand(1, 0);
             //Act
-            var response = tempVr.RemoveCommand(3, 12);
+            var response = tempVr.RemoveCommand(1, 0);
             //Assert
             Assert.IsTrue(response);
         }
@@ -212,7 +222,7 @@ namespace EasyVRLibrary.Tests
             //Arrange
             var tempVr = new EasyVr(_comPort);
             //Act
-            var response = tempVr.ResetAll(true);
+            var response = tempVr.ResetAll();
             //Assert
             Assert.IsTrue(response);
         }
@@ -371,6 +381,17 @@ namespace EasyVRLibrary.Tests
             var response = tempVr.Stop();
             //Assert
             Assert.IsTrue(response);
+        }
+
+        [TestMethod()]
+        public void GetIdTest_Success()
+        {
+            //Arrange
+            var tempVr = new EasyVr(_comPort);
+            //Act
+            var response = tempVr.GetId();
+            //Assert
+            Assert.IsTrue(response >= 0);
         }
     }
 }

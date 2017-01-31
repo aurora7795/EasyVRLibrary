@@ -720,29 +720,17 @@ namespace EasyVRLibrary
         /// <summary>
         ///     Empties internal memory for custom commands/groups and messages.
         /// </summary>
-        /// <param name="wait">specifies whether to wait until the operation is complete (or times out)</param>
         /// <returns>true if the operation is successful</returns>
         /// <remarks>
         ///     It will take some time for the whole process to complete (EasyVR3 is faster)
         ///     and it cannot be interrupted.During this time the module cannot accept any other command.
         ///     The sound table and custom grammars data is not affected.
         /// </remarks>
-        public bool ResetAll(bool wait)
+        public bool ResetAll()
         {
             SendCommand(CMD_RESETALL);
-            SendArgument('R' - ARG_ZERO);
-
-            if (!wait)
-                return true;
-
-            var timeout = 40; // seconds
-            if (GetId() >= ModuleId.EASYVR3)
-                timeout = 5;
-            while (timeout != 0)
-            {
-                Thread.Sleep(1000);
-                --timeout;
-            }
+            SendCommand('R');
+            
             return GetResponse() == STS_SUCCESS;
         }
 
@@ -1084,8 +1072,9 @@ namespace EasyVRLibrary
             throw new NotImplementedException();
         }
 
-        private static char GetResponse()
+        private static char GetResponse(int timeout = DEF_TIMEOUT)
         {
+            _serialPort.ReadTimeout = timeout;
             var temp = _serialPort.ReadByte();
 
             return (char) temp;
