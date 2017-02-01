@@ -9,7 +9,7 @@ namespace EasyVRLibrary.Tests
     public class EasyVrTests
     {
         // The following tests rely on an EasyVR unit being available and mapped to a COM port - they all use the following field. Update approriately to your own configuration.
-        private readonly string _comPort = "COM3";
+        private readonly string _comPort = "COM1";
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
@@ -43,7 +43,7 @@ namespace EasyVRLibrary.Tests
             tempVr.ResetAll();
 
             //Act
-            var response = tempVr.AddCommand(0,0);
+            var response = tempVr.AddCommand(0, 0);
             //Assert
             Assert.IsTrue(response);
         }
@@ -164,7 +164,7 @@ namespace EasyVRLibrary.Tests
             //Arrange
             var tempVr = new EasyVr(_comPort);
             //Act
-            var response = tempVr.PlaySound(1, 9);
+            var response = tempVr.PlaySound(1, 15);
             //Assert
             Assert.IsTrue(response);
         }
@@ -392,6 +392,42 @@ namespace EasyVRLibrary.Tests
             var response = tempVr.GetId();
             //Assert
             Assert.IsTrue(response >= 0);
+        }
+
+        [TestMethod()]
+        public void CheckMessagesTest_Success()
+        {
+            //Arrange
+            var tempVr = new EasyVr(_comPort);
+            //Act
+            var response = tempVr.CheckMessages();
+            //Assert
+            Assert.IsTrue(response);
+        }
+
+        [TestMethod()]
+        public void DetectTest_Success()
+        {
+            //Arrange
+            var tempVr = new EasyVr(_comPort);
+            //Act
+            var response = tempVr.Detect();
+            //Assert
+            Assert.IsTrue(response);
+        }
+
+        [TestMethod()]
+        public void DumpGrammarTest_Success()
+        {
+            //Arrange
+            var tempVr = new EasyVr(_comPort);
+            //Act
+            byte flags;
+            byte count;
+            var response = tempVr.DumpGrammar(0, out flags, out count);
+            //Assert
+            Assert.IsTrue(response);
+            
         }
     }
 }

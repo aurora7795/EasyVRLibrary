@@ -79,7 +79,7 @@ namespace EasyVRLibrary
         }
 
         /// <summary>
-        ///     Performs bridge mode between the EasyVR serial port and the specified por in a continuous loop.It can be aborted by
+        ///     Performs bridge mode between the EasyVR serial port and the specified port in a continuous loop.It can be aborted by
         ///     sending a question mark('?') on the target port.
         /// </summary>
         /// <param name="port">is the target serial port (usually the PC serial port)</param>
@@ -113,7 +113,7 @@ namespace EasyVRLibrary
         public bool ChangeBaudrate(Baudrate baudRate)
         {
             SendCommand(CMD_BAUDRATE);
-            SendArgument((int) baudRate);
+            SendArgument((int)baudRate);
 
             return GetResponse() == STS_SUCCESS;
         }
@@ -129,7 +129,13 @@ namespace EasyVRLibrary
         /// </remarks>
         public bool CheckMessages()
         {
-            throw new NotImplementedException();
+            SendCommand(CMD_VERIFY_RP);
+            SendArgument(-1);
+            SendArgument(0);
+
+            char rx = GetResponse(STORAGE_TIMEOUT);
+            ReadStatus(rx);
+            return (_status.v == 0);
         }
 
         public void ClosePort()
@@ -176,8 +182,8 @@ namespace EasyVRLibrary
         public void DetectToken(BitNumber bits, RejectionLevel rejection, int timeout)
         {
             SendCommand(CMD_RECV_SN);
-            SendArgument((int) bits);
-            SendArgument((int) rejection);
+            SendArgument((int)bits);
+            SendArgument((int)rejection);
 
             if (timeout > 0)
                 timeout = (timeout * 2 + 53) / 55; // approx / 27.46 - err < 0.15%
@@ -193,7 +199,7 @@ namespace EasyVRLibrary
         /// <param name="flags">is a variable that holds some grammar flags when the function returns. See #GrammarFlag</param>
         /// <param name="count">count is a variable that holds the number of words in the grammar when the function returns.</param>
         /// <returns>true if the operation is successful</returns>
-        public bool DumpGrammar(sbyte grammar, ref byte flags, ref byte count)
+        public bool DumpGrammar(int grammar, out byte flags, out byte count)
         {
             if (grammar < 0 || grammar > 31) throw new ArgumentOutOfRangeException(nameof(grammar));
 
@@ -201,16 +207,28 @@ namespace EasyVRLibrary
             SendArgument(grammar);
 
             if (GetResponse() != STS_GRAMMAR)
+            {
+                count = 0;
+                flags = 0;
                 return false;
+            }
 
             char rx;
             if (!ReceiveArgument(out rx))
+            {
+                count = 0;
+                flags = 0;
                 return false;
-            flags = (byte) (rx == -1 ? 32 : rx);
+
+            }
+            flags = (byte)(rx == -1 ? 32 : rx);
 
             if (!ReceiveArgument(out rx))
+            {
+                count = 0;
                 return false;
-            count = (byte) rx;
+            }
+            count = (byte)rx;
             return true;
         }
 
@@ -225,9 +243,47 @@ namespace EasyVRLibrary
         ///     failure.
         /// </remarks>
         /// <returns></returns>
-        public bool DumpMessage(sbyte index, ref sbyte type, ref int length)
+        public bool DumpMessage(sbyte index, out char type, out int length)
         {
-            throw new NotImplementedException();
+            SendCommand(CMD_DUMP_RP);
+            SendArgument(-1);
+            SendArgument(index);
+
+            var sts = GetResponse(STORAGE_TIMEOUT);
+            if (sts != STS_MESSAGE)
+            {
+                ReadStatus(sts);
+                type = (char) 0;
+                length = 0;
+                return false;
+            }
+
+            // if communication should fail
+            _status.v = 0;
+            _status._error = true;
+
+            if (!ReceiveArgument( out type))
+            {
+                length = 0;
+                return false;
+            }
+
+            length = 0;
+            if (type == 0)
+                return true; // skip reading if empty
+
+            for (int i = 0; i < 6; ++i)
+            {
+                char rx;
+                if (!ReceiveArgument(out rx))
+                    return false;
+                length[i] |= rx & 0x0F;
+                if (!ReceiveArgument(out rx))
+                    return false;
+                ((int)&length)[i] |= (rx << 4) & 0xF0;
+            }
+            _status.v = 0;
+            return true;
         }
 
         /// <summary>
@@ -270,6 +326,11 @@ namespace EasyVRLibrary
         /// <param name="index">index (0-31) is the index of the command within the selected group</param>
         /// <param name="name">name is a string containing the label to be assigned to the specified command</param>
         /// <returns>true if the operation is successful</returns>
+        public bool SetCommandLabel(int group, int index, string name)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         ///     Erases the training data of a custom command.
         /// </summary>
@@ -348,7 +409,7 @@ namespace EasyVRLibrary
         /// </returns>
         public sbyte GetCommand()
         {
-            if (_status._command) return (sbyte) _value;
+            if (_status._command) return (sbyte)_value;
             return -1;
         }
 
@@ -359,6 +420,11 @@ namespace EasyVRLibrary
         /// </summary>
         /// <param name="mask">mask is a variable to hold the group mask when the function returns</param>
         /// <returns>true if the operation is successful</returns>
+        public bool GetGroupMask(int mask)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         ///     Gets the number of commands in the specified group.
         /// </summary>
@@ -384,29 +450,26 @@ namespace EasyVRLibrary
         /// <returns>(0-255) is the error code, (-1) if no error occurred</returns>
         public short GetError()
         {
-            if (_status._error) return (short) _value;
+            if (_status._error) return (short)_value;
             return -1;
         }
 
-        /**
-                  Retrieves the name and training data of a custom command.
-                  @param group (0-16) is the target group, or one of the values in #Groups
-                  @param index (0-31) is the index of the command within the selected group
-                  @param name points to an array of at least 32 characters that holds the
-                  command label when the function returns
-                  @param training is a variable that holds the training count when the
-                  function returns. Additional information about training is available
-                  through the functions #isConflict() and #getWord() or #getCommand()
-                  @retval true if the operation is successful
-                */
-        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
-        //bool dumpCommand(sbyte group, sbyte index, ref string name, ref byte training)
-        //{
-        //    //TODO: compicated one
-        //}
-
-        // custom grammars
-
+        /// <summary>
+        /// Retrieves the name and training data of a custom command.
+        /// </summary>
+        /// <param name="group">(0-16) is the target group, or one of the values in #Groups</param>
+        /// <param name="index">(0-31) is the index of the command within the selected group</param>
+        /// <param name="name">points to an array of at least 32 characters that holds the command 
+        /// label when the function returns</param>
+        /// <param name="training">training is a variable that holds the training count when the function returns.
+        /// Additional information about training is available through the functions #isConflict() 
+        /// and #getWord() or #getCommand()</param>
+        /// <returns>true if the operation is successful</returns>
+        public bool DumpCommand(sbyte group, sbyte index, ref string name, out byte training)
+        {
+            throw new NotImplementedException();
+        }
+        
         /// <summary>
         ///     Gets the total number of grammars available, including built-in and custom.
         /// </summary>
@@ -438,7 +501,7 @@ namespace EasyVRLibrary
             ReceiveArgument(out response);
 
             var decodedValue = ArgumentEncoding.ConvertArgumentCode(response);
-            var tempModule = (ModuleId) decodedValue;
+            var tempModule = (ModuleId)decodedValue;
 
             return tempModule;
         }
@@ -452,7 +515,7 @@ namespace EasyVRLibrary
         /// </returns>
         public short GetToken()
         {
-            if (_status._token) return (short) _value;
+            if (_status._token) return (short)_value;
             return -1;
         }
 
@@ -465,7 +528,7 @@ namespace EasyVRLibrary
         /// </returns>
         public sbyte GetWord()
         {
-            if (_status._builtin) return (sbyte) _value;
+            if (_status._builtin) return (sbyte)_value;
             return -1;
         }
 
@@ -601,8 +664,8 @@ namespace EasyVRLibrary
             if (volume < 0 || volume > 31) throw new ArgumentOutOfRangeException(nameof(volume));
 
             SendCommand(CMD_PLAY_SX);
-            SendArgument((sbyte) ((index >> 5) & 0x1F));
-            SendArgument((sbyte) (index & 0x1F));
+            SendArgument((sbyte)((index >> 5) & 0x1F));
+            SendArgument((sbyte)(index & 0x1F));
             SendArgument(volume);
 
             return GetResponse() == STS_SUCCESS;
@@ -730,7 +793,7 @@ namespace EasyVRLibrary
         {
             SendCommand(CMD_RESETALL);
             SendCommand('R');
-            
+
             return GetResponse() == STS_SUCCESS;
         }
 
@@ -801,7 +864,7 @@ namespace EasyVRLibrary
             }
 
             SendCommand(CMD_SEND_SN);
-            SendArgument((int) bits);
+            SendArgument((int)bits);
             SendArgument(token);
         }
 
@@ -815,7 +878,7 @@ namespace EasyVRLibrary
         {
             SendCommand(CMD_FAST_SD);
             SendArgument(-1);
-            SendArgument((int) mode);
+            SendArgument((int)mode);
 
             return GetResponse() == STS_SUCCESS;
         }
@@ -834,11 +897,11 @@ namespace EasyVRLibrary
 
             SendCommand(CMD_DELAY);
             if (millis <= 10)
-                SendArgument((sbyte) millis);
+                SendArgument((sbyte)millis);
             else if (millis <= 100)
-                SendArgument((sbyte) (millis / 10 + 9));
+                SendArgument((sbyte)(millis / 10 + 9));
             else if (millis <= 1000)
-                SendArgument((sbyte) (millis / 100 + 18));
+                SendArgument((sbyte)(millis / 100 + 18));
             else
                 return false;
 
@@ -853,7 +916,7 @@ namespace EasyVRLibrary
         public bool SetKnob(Knob knob)
         {
             SendCommand(CMD_KNOB);
-            SendArgument((int) knob);
+            SendArgument((int)knob);
 
             return GetResponse() == STS_SUCCESS;
         }
@@ -866,7 +929,7 @@ namespace EasyVRLibrary
         public bool SetLanguage(Language lang)
         {
             SendCommand(CMD_LANGUAGE);
-            SendArgument((int) lang);
+            SendArgument((int)lang);
 
             return GetResponse() == STS_SUCCESS;
         }
@@ -879,7 +942,7 @@ namespace EasyVRLibrary
         public bool SetLevel(Level level)
         {
             SendCommand(CMD_LEVEL);
-            SendArgument((int) level);
+            SendArgument((int)level);
 
             return GetResponse() == STS_SUCCESS;
         }
@@ -895,7 +958,7 @@ namespace EasyVRLibrary
         {
             SendCommand(CMD_MIC_DIST);
             SendArgument(-1);
-            SendArgument((int) distance);
+            SendArgument((int)distance);
 
             return GetResponse() == STS_SUCCESS;
         }
@@ -912,8 +975,8 @@ namespace EasyVRLibrary
                 throw new ArgumentException("Invalid Pin Configuration");
 
             SendCommand(CMD_QUERY_IO);
-            SendArgument((int) pin);
-            SendArgument((int) config);
+            SendArgument((int)pin);
+            SendArgument((int)config);
 
             if (GetResponse() == STS_PIN)
                 return ArgumentEncoding.ConvertArgumentCode(GetResponse());
@@ -931,15 +994,15 @@ namespace EasyVRLibrary
         /// <returns>true if the operation is successful</returns>
         public bool SetPinOutput(PinNumber pin, PinConfig value)
         {
-            if ((int) pin > 3)
+            if ((int)pin > 3)
                 throw new ArgumentException("Invalid Pin number");
 
-            if ((int) value > 1)
+            if ((int)value > 1)
                 throw new ArgumentException("Invalid output value");
 
             SendCommand(CMD_QUERY_IO);
-            SendArgument((int) pin);
-            SendArgument((int) value);
+            SendArgument((int)pin);
+            SendArgument((int)value);
 
             return GetResponse() == STS_SUCCESS;
         }
@@ -968,7 +1031,7 @@ namespace EasyVRLibrary
         {
             SendCommand(CMD_TRAILING);
             SendArgument(-1);
-            SendArgument((int) duration);
+            SendArgument((int)duration);
 
             return GetResponse() == STS_SUCCESS;
         }
@@ -984,7 +1047,7 @@ namespace EasyVRLibrary
         public bool Sleep(WakeMode mode)
         {
             SendCommand(CMD_SLEEP);
-            SendArgument((int) mode);
+            SendArgument((int)mode);
 
             return GetResponse() == STS_SUCCESS;
         }
@@ -1001,46 +1064,44 @@ namespace EasyVRLibrary
             var rx = GetResponse();
             return rx == STS_INTERR || rx == STS_SUCCESS;
         }
+        
+        /// <summary>
+        /// Retrieves the name of a command contained in a custom grammar. It must be called after #dumpGrammar()
+        /// </summary>
+        /// <param name="name">points to an array of at least 32 characters that holds the command label when 
+        /// the function returns</param>
+        /// <returns>true if the operation is successful</returns>
+        public bool GetNextWordLabel(ref char[] name)
+        {
+            throw new NotImplementedException();
+            //char count;
+            //if (!ReceiveArgument(out count))
+            //    return false;
+            //if (count == -1)
+            //    count = (char) 32;
 
-        /**
-          Retrieves the name of a command contained in a custom grammar.
-          It must be called after #dumpGrammar()
-          @param name points to an array of at least 32 characters that holds the
-          command label when the function returns
-          @retval true if the operation is successful
-        */
+            //for (; count > 0; --count, ++name)
+            //{
+            //    char rx;
+            //    if (!ReceiveArgument(out rx))
+            //        return false;
 
-        // TODO: what is going here?
-        //bool getNextWordLabel(ref string name)
-        //{
-        //    int count =0;
-        //    if (!recvArg(ref count))
-        //        return false;
-        //    if (count == -1)
-        //        count = 32;
+            //    if (rx == '^')
+            //    {
+            //        if (!ReceiveArgument(out rx))
+            //            return false;
 
-        //    for (; count > 0; --count, ++name)
-        //    {
-        //        var rx =0;
-        //        if (!recvArg(ref rx))
-        //            return false;
-
-        //        if (rx == '^' - char.ARG_ZERO)
-        //        {
-        //            if (!recvArg(ref rx))
-        //                return false;
-
-        //            name = '0' + rx;
-        //            --count;
-        //        }
-        //        else
-        //        {
-        //            *name = ARG_ZERO + rx;
-        //        }
-        //    }
-        //    *name = 0;
-        //    return true; 
-        //}
+            //        name = '0' + rx;
+            //        --count;
+            //    }
+            //    else
+            //    {
+            //        name = ARG_ZERO + rx;
+            //    }
+            //}
+            //name = 0;
+            //return true;
+        }
         // recognition/training
 
 
@@ -1077,7 +1138,7 @@ namespace EasyVRLibrary
             _serialPort.ReadTimeout = timeout;
             var temp = _serialPort.ReadByte();
 
-            return (char) temp;
+            return (char)temp;
         }
 
         private void ReadStatus(char rx)
@@ -1155,7 +1216,7 @@ namespace EasyVRLibrary
 
         private static bool ReceiveArgument(out char response)
         {
-            SendCommand((char) ARG_ACK);
+            SendCommand((char)ARG_ACK);
             response = GetResponse();
             return response >= ARG_MIN && response <= ARG_MAX;
         }
