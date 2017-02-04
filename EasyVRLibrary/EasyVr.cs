@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.IO.Ports;
+using System.Text;
 using System.Threading;
 using static EasyVRLibrary.Protocol;
 
@@ -9,7 +10,7 @@ namespace EasyVRLibrary
 {
     public class EasyVr
     {
-        public const int EASYVR_RX_TIMEOUT = 100;
+        public const int EASYVR_RX_TIMEOUT = 500;
         public const int EASYVR_STORAGE_TIMEOUT = 500;
         public const int EASYVR_WAKE_TIMEOUT = 200;
         public const int EASYVR_PLAY_TIMEOUT = 5000;
@@ -237,13 +238,13 @@ namespace EasyVRLibrary
         /// </summary>
         /// <param name="index">(0-31) is the index of the target message slot</param>
         /// <param name="type">(0,8) is a variable that holds the message format when the function returns(see #MessageType)</param>
-        /// <param name="length">length is a variable that holds the message length in bytes whe the function returns</param>
+        /// <param name="length">length is a variable that holds the message length in bytes when the function returns</param>
         /// <remarks>
         ///     The specified message may have errors. Use #getError() when the function fails, to know the reason of the
         ///     failure.
         /// </remarks>
         /// <returns></returns>
-        public bool DumpMessage(sbyte index, out char type, out int length)
+        public bool DumpMessage(sbyte index, out int type, out int length)
         {
             SendCommand(CMD_DUMP_RP);
             SendArgument(-1);
@@ -253,35 +254,39 @@ namespace EasyVRLibrary
             if (sts != STS_MESSAGE)
             {
                 ReadStatus(sts);
-                type = (char) 0;
                 length = 0;
+                type = 0;
                 return false;
             }
 
             // if communication should fail
             _status.v = 0;
             _status._error = true;
-
+            
             if (!ReceiveArgument( out type))
             {
                 length = 0;
+                type = 0;
                 return false;
             }
-
+            
             length = 0;
             if (type == 0)
                 return true; // skip reading if empty
 
-            for (int i = 0; i < 6; ++i)
+            var tempArray = new int[7];
+
+            for (var i = 0; i < 6; ++i)
             {
                 char rx;
                 if (!ReceiveArgument(out rx))
                     return false;
-                length[i] |= rx & 0x0F;
+                tempArray[i] |= rx & 0x0F;
                 if (!ReceiveArgument(out rx))
                     return false;
-                ((int)&length)[i] |= (rx << 4) & 0xF0;
+                tempArray[i] |= (rx << 4) & 0xF0;
             }
+
             _status.v = 0;
             return true;
         }
@@ -328,7 +333,30 @@ namespace EasyVRLibrary
         /// <returns>true if the operation is successful</returns>
         public bool SetCommandLabel(int group, int index, string name)
         {
-            throw new NotImplementedException();
+            SendCommand(CMD_NAME_SD);
+            SendArgument(group);
+            SendArgument(index);
+
+            SendArgument(name.Length);
+
+            foreach (var c in name)
+            {
+                if (char.IsDigit(c))
+                {
+                    //SendCharacter('^');
+                    SendArgument(c - '0');
+                }
+                else if (char.IsLetter(c))
+                {
+                    SendCharacter((char) (c & ~0x20)); // to uppercase
+                }
+                else
+                {
+                    SendCharacter('_');
+                }
+            }
+
+            return GetResponse(STORAGE_TIMEOUT) == STS_SUCCESS;
         }
 
         /// <summary>
@@ -465,9 +493,58 @@ namespace EasyVRLibrary
         /// Additional information about training is available through the functions #isConflict() 
         /// and #getWord() or #getCommand()</param>
         /// <returns>true if the operation is successful</returns>
-        public bool DumpCommand(sbyte group, sbyte index, ref string name, out byte training)
+        public bool DumpCommand(int group, int index, ref string name, ref int training)
         {
-            throw new NotImplementedException();
+            SendCommand(CMD_DUMP_SD);
+            SendArgument(group);
+            SendArgument(index);
+
+            if (GetResponse() != STS_DATA)
+                return false;
+
+            int rx;
+            if (!ReceiveArgument(out rx))
+                return false;
+
+            training = rx & 0x07;
+            if (rx == -1 || training == 7)
+                training = 0;
+
+            _status.v = 0;
+            _status._conflict = (rx & 0x18) != 0;
+            _status._command = (rx & 0x08) != 0;
+            _status._builtin = (rx & 0x10) != 0;
+
+            if (!ReceiveArgument(out rx))
+                return false;
+            
+            _value = rx;
+
+            if (!ReceiveArgument(out rx))
+                return false;
+           
+            var tempString = new StringBuilder();
+            
+            for (var length = rx; length > 0; length--)
+            {
+                char rxChar;
+                if (!ReceiveArgument(out rxChar))
+                    return false;
+                if (rxChar == '^')
+                {
+                    if (!ReceiveArgument(out rxChar))
+                        return false;
+                    tempString.Append(ArgumentEncoding.ConvertArgumentCode(rxChar));
+                    --length;
+                }
+                else
+                {
+                    tempString.Append(rxChar);
+                }
+            }
+            
+            name = tempString.ToString();
+            return true;
         }
         
         /// <summary>
@@ -538,7 +615,7 @@ namespace EasyVRLibrary
         /// <returns>true if the operation has completed</returns>
         public bool HasFinished()
         {
-            var rx = GetResponse();
+            var rx = GetResponse(1000);
             if (rx < 0)
                 return false;
 
@@ -615,14 +692,17 @@ namespace EasyVRLibrary
         /// </summary>
         /// <param name="index">(0-31) is the index of the target message slot</param>
         /// <param name="speed">(0-1) may be one of the values in #MessageSpeed</param>
-        /// <param name="atten">(0-3) may be one of the values in #MessageAttenuation</param>
+        /// <param name="attenuation">(0-3) may be one of the values in #MessageAttenuation</param>
         /// <remarks>
         ///     The module is busy until playback completes and it cannot accept other commands.You can interrupt playback
         ///     with #stop().
         /// </remarks>
-        public void PlayMessageAsync(sbyte index, sbyte speed, sbyte atten)
+        public void PlayMessageAsync(sbyte index, MessageSpeed speed, MessageAttenuation attenuation)
         {
-            throw new NotImplementedException();
+            SendCommand(CMD_PLAY_RP);
+            SendArgument(-1);
+            SendArgument(index);
+            SendArgument(((int)speed << 2) | ((int)attenuation & 3));
         }
 
 
@@ -645,7 +725,7 @@ namespace EasyVRLibrary
             SendArgument(tone);
             SendArgument(duration);
 
-            var response = GetResponse();
+            var response = GetResponse(5000);
             return response == STS_SUCCESS;
         }
 
@@ -668,7 +748,7 @@ namespace EasyVRLibrary
             SendArgument((sbyte)(index & 0x1F));
             SendArgument(volume);
 
-            return GetResponse() == STS_SUCCESS;
+            return GetResponse(PLAY_TIMEOUT) == STS_SUCCESS;
         }
 
         /// <summary>
@@ -680,9 +760,14 @@ namespace EasyVRLibrary
         ///     The module is busy until playback completes and it cannot accept other commands.You can interrupt playback
         ///     with #stop().
         /// </remarks>
-        public void PlaySoundAsync(short index, sbyte volume)
+        public void PlaySoundAsync(short index, int volume)
         {
-            throw new NotImplementedException();
+            if (volume < 0 || volume > 31) throw new ArgumentOutOfRangeException(nameof(volume));
+            
+            SendCommand(CMD_PLAY_SX);
+            SendArgument((index >> 5) & 0x1F);
+            SendArgument(index & 0x1F);
+            SendArgument((int)volume);
         }
 
         /// <summary>
@@ -756,9 +841,16 @@ namespace EasyVRLibrary
         ///     The module is busy until recording times out or the end of memory is reached.You can interrupt an ongoing
         ///     recording with #stop().
         /// </remarks>
-        public void RecordMessageAsync(sbyte index, sbyte bits, sbyte timeout)
+        public void RecordMessageAsync(sbyte index, MessageType bits, sbyte timeout)
         {
-            throw new NotImplementedException();
+            if (index < 0 || index > 31) throw new ArgumentOutOfRangeException(nameof(index));
+            if (timeout < 0 || timeout > 31) throw new ArgumentOutOfRangeException(nameof(timeout));
+            
+            SendCommand(CMD_RECORD_RP);
+            SendArgument(-1);
+            SendArgument(index);
+            SendArgument((int) bits);
+            SendArgument(timeout);
         }
 
         /// <summary>
@@ -794,7 +886,7 @@ namespace EasyVRLibrary
             SendCommand(CMD_RESETALL);
             SendCommand('R');
 
-            return GetResponse() == STS_SUCCESS;
+            return GetResponse(5000) == STS_SUCCESS;
         }
 
         /// <summary>
@@ -809,7 +901,10 @@ namespace EasyVRLibrary
         /// </remarks>
         public bool ResetCommands(bool wait)
         {
-            throw new NotImplementedException();
+            SendCommand(CMD_RESETALL);
+            SendArgument('D');
+
+            return GetResponse(5000) == STS_SUCCESS;
         }
 
         /// <summary>
@@ -824,7 +919,10 @@ namespace EasyVRLibrary
         /// </remarks>
         public bool ResetMessages(bool wait)
         {
-            throw new NotImplementedException();
+            SendCommand(CMD_RESETALL);
+            SendArgument('M');
+
+            return GetResponse(5000) == STS_SUCCESS;
         }
 
         /// <summary>
@@ -833,9 +931,18 @@ namespace EasyVRLibrary
         /// <param name="bits">bits (4 or 8) specifies the length of trasmitted token</param>
         /// <param name="token">token is the index of the SonicNet token to play (0-255 for 8-bit tokens or 0-15 for 4-bit tokens)</param>
         /// <returns>true if the operation is successful</returns>
-        public bool SendToken(sbyte bits, byte token)
+        public bool SendToken(BitNumber bits, byte token)
         {
-            throw new NotImplementedException();
+            SendCommand(CMD_SEND_SN);
+            SendArgument((int)bits);
+            SendArgument((token >> 5) & 0x1F);
+            SendArgument(token & 0x1F);
+            SendArgument(0);
+            SendArgument(0);
+
+            if (GetResponse(TOKEN_TIMEOUT) == STS_SUCCESS)
+                return true;
+            return false;
         }
 
         /// <summary>
@@ -1130,7 +1237,13 @@ namespace EasyVRLibrary
         /// <param name="index">(0-31) is the index of the command within the selected group</param>
         public void VerifyCommand(sbyte group, sbyte index)
         {
-            throw new NotImplementedException();
+            if (group < 0 || group > 31) throw new ArgumentOutOfRangeException(nameof(group));
+            if (index < 0 || index > 31) throw new ArgumentOutOfRangeException(nameof(index));
+
+            SendCommand(CMD_SERVICE);
+            SendArgument(SVC_VERIFY_SD);
+            SendArgument(group);
+            SendArgument(index);
         }
 
         private static char GetResponse(int timeout = DEF_TIMEOUT)
@@ -1221,9 +1334,22 @@ namespace EasyVRLibrary
             return response >= ARG_MIN && response <= ARG_MAX;
         }
 
+        private static bool ReceiveArgument(out int response)
+        {
+            SendCommand((char)ARG_ACK);
+            response = ArgumentEncoding.ConvertArgumentCode(GetResponse()); 
+            return response >= -1 && response <= 31;
+        }
+
+
         private static void SendArgument(int argument)
         {
             _serialPort.Write(ArgumentEncoding.IntToArgumentString(argument));
+        }
+
+        private static void SendCharacter(char argument)
+        {
+            _serialPort.Write(argument.ToString());
         }
 
         private static void SendCommand(char command)

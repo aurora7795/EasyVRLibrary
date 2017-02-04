@@ -1,5 +1,7 @@
 ﻿using EasyVRLibrary;
 using System;
+using System.Runtime.Remoting.Messaging;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using static EasyVRLibrary.Protocol;
 
@@ -9,7 +11,7 @@ namespace EasyVRLibrary.Tests
     public class EasyVrTests
     {
         // The following tests rely on an EasyVR unit being available and mapped to a COM port - they all use the following field. Update approriately to your own configuration.
-        private readonly string _comPort = "COM1";
+        private readonly string _comPort = "COM3";
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
@@ -188,8 +190,6 @@ namespace EasyVRLibrary.Tests
             var tempVr = new EasyVr(_comPort);
             //Act
             tempVr.RemoveCommand(17, 12);
-            //Cleanup
-            tempVr.ClosePort();
         }
 
         [TestMethod]
@@ -279,8 +279,6 @@ namespace EasyVRLibrary.Tests
             var response = tempVr.SetDelay(223);
             //Assert
             Assert.IsTrue(response);
-            //Cleanup
-            tempVr.ClosePort();
         }
 
         [TestMethod]
@@ -427,7 +425,87 @@ namespace EasyVRLibrary.Tests
             var response = tempVr.DumpGrammar(0, out flags, out count);
             //Assert
             Assert.IsTrue(response);
-            
+
+        }
+
+        [TestMethod()]
+        public void DumpMessageTest_NoMessageAvailable_Success()
+        {
+            //Arrange
+            var tempVr = new EasyVr(_comPort);
+            tempVr.ResetAll();
+            //Act
+            int type;
+            int length;
+            var response = tempVr.DumpMessage(0, out type, out length);
+            //Assert
+            Assert.IsTrue(type == 0);
+            Assert.IsTrue(length == 0);
+            Assert.IsTrue(response);
+        }
+
+        [TestMethod()]
+        public void PlayMessageAsyncTest_Success()
+        {
+            var tempVr = new EasyVr(_comPort);
+
+            tempVr.PlayMessageAsync(1, MessageSpeed.SPEED_NORMAL, MessageAttenuation.ATTEN_NONE);
+
+        }
+
+        [TestMethod()]
+        public void PlaySoundAsyncTest_Success()
+        {
+            var tempVr = new EasyVr(_comPort);
+            tempVr.PlaySoundAsync(1, 15);
+        }
+
+        [TestMethod()]
+        public void RecordMessageAsyncTest()
+        {
+            var tempVr = new EasyVr(_comPort);
+
+            tempVr.RecordMessageAsync(1, MessageType.MSG_EMPTY, 5);
+
+            Thread.Sleep(10000);
+
+            tempVr.PlayMessageAsync(1, MessageSpeed.SPEED_NORMAL, MessageAttenuation.ATTEN_NONE);
+        }
+
+        [TestMethod()]
+        public void DumpCommandTest()
+        {
+            var tempVr = new EasyVr(_comPort);
+
+            string name = null;
+            var training = 0;
+            var response = tempVr.DumpCommand(1, 0, ref name, ref training);
+
+            Assert.IsTrue(response);
+            Assert.IsTrue(name == "TESTING123");
+            Assert.IsTrue(training == 2);
+        }
+
+        [TestMethod()]
+        public void SetCommandLabelTest()
+        {
+            var tempVr = new EasyVr(_comPort);
+            tempVr.ResetAll();
+            var response = tempVr.AddCommand(0, 0);
+
+            Assert.IsTrue(response);
+
+            response = tempVr.SetCommandLabel(0, 0, "testCom1");
+
+            Assert.IsTrue(response);
+
+            string name = null;
+            var training = 0;
+            response = tempVr.DumpCommand(0, 0, ref name, ref training);
+
+            Assert.IsTrue(response);
+            Assert.IsTrue(name == "TESTCOM1");
+            Assert.IsTrue(training == 0);
         }
     }
 }
