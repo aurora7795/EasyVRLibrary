@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.IO.Ports;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using static EasyVRLibrary.Protocol;
@@ -337,13 +338,17 @@ namespace EasyVRLibrary
             SendArgument(group);
             SendArgument(index);
 
-            SendArgument(name.Length);
+            // numeric characters in the label string must be prefixed with a '^' - this increases the overall length of the 
+            // name and needs to be taken into account when determining how many characters will be sent to the Easy VR module
+            var escapedCharsNeeded = name.Count(char.IsDigit);
+
+            SendArgument(name.Length + escapedCharsNeeded);
 
             foreach (var c in name)
             {
                 if (char.IsDigit(c))
                 {
-                    //SendCharacter('^');
+                    SendCharacter('^');
                     SendArgument(c - '0');
                 }
                 else if (char.IsLetter(c))
