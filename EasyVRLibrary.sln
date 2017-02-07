@@ -1,13 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyVRLibraryTests", "EasyVRLibraryTests\EasyVRLibraryTests.csproj", "{A3488C79-76EE-4D1E-9095-6B9CFF8BA389}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyVRLibrary", "EasyVRLibrary\EasyVRLibrary.csproj", "{7BCBA997-8FF3-4BA7-BFA4-8E89278EF81E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "comPortConsole", "comPortConsoleHarness\comPortConsole.csproj", "{6AF0A048-069F-4B1A-9C75-C82EB5EE50BA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestHarness", "TestHarness\TestHarness.csproj", "{DD42D845-63E8-4E8D-BDFA-0A522D4B4F9C}"
 EndProject
@@ -25,10 +23,6 @@ Global
 		{7BCBA997-8FF3-4BA7-BFA4-8E89278EF81E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7BCBA997-8FF3-4BA7-BFA4-8E89278EF81E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7BCBA997-8FF3-4BA7-BFA4-8E89278EF81E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6AF0A048-069F-4B1A-9C75-C82EB5EE50BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6AF0A048-069F-4B1A-9C75-C82EB5EE50BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6AF0A048-069F-4B1A-9C75-C82EB5EE50BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6AF0A048-069F-4B1A-9C75-C82EB5EE50BA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DD42D845-63E8-4E8D-BDFA-0A522D4B4F9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DD42D845-63E8-4E8D-BDFA-0A522D4B4F9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD42D845-63E8-4E8D-BDFA-0A522D4B4F9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
