@@ -3,23 +3,23 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:TestHarness"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d"
-        Title="Easy VR Test Harness" MinHeight="400" MinWidth="525" Height="300" Width="325" Closing="Window_Closing">
+        Title="Easy VR Test Harness" MinHeight="400" MinWidth="525" Height="448" Width="325" Closing="Window_Closing">
     <Grid>
-        <TextBox x:Name="ResponseTb" HorizontalAlignment="Left" Height="96" Margin="11,250,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="497" IsEnabled="{Binding Enabled}"/>
+        <TextBox x:Name="ResponseTb" HorizontalAlignment="Left" Height="96" Margin="11,313,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="497" IsEnabled="{Binding Enabled}" IsReadOnly="True" VerticalScrollBarVisibility="Auto"/>
 
-        <Label Content="Response:" HorizontalAlignment="Left" Margin="11,219,0,0" VerticalAlignment="Top"/>
-        <Button x:Name="GetModuleIdButton" Content="Get Id of module" HorizontalAlignment="Left" Margin="11,37,0,0" VerticalAlignment="Top" Width="185" IsEnabled="{Binding Enabled}" Click="GetModuleIdButton_Click"/>
+        <Label Content="Response:" HorizontalAlignment="Left" Margin="11,282,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="GetModuleIdButton" Content="Get Id of module" HorizontalAlignment="Left" Margin="12,97,0,0" VerticalAlignment="Top" Width="185" IsEnabled="{Binding Enabled}" Click="GetModuleIdButton_Click"/>
 
-        <Label x:Name="label" Content="COM Port:" HorizontalAlignment="Left" Margin="7,6,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="PortComboBox" HorizontalAlignment="Left" Margin="76,10,0,0" VerticalAlignment="Top" Width="120"/>
-        <Button x:Name="RefreshPortListButton" Content="Refresh" HorizontalAlignment="Left" Margin="201,10,0,0" VerticalAlignment="Top" Width="75"/>
-        <Button x:Name="ConnectButton" Content="Connect" HorizontalAlignment="Left" Margin="281,10,0,0" VerticalAlignment="Top" Width="75" Click="ConnectButton_Click"/>
-        <Button x:Name="SendPhoneToneButton" Content="Send Phone Tone" HorizontalAlignment="Left" Margin="11,62,0,0" VerticalAlignment="Top" Width="185" Click="SendPhoneToneButton_Click" IsEnabled="{Binding Enabled}"/>
-        <Button x:Name="StartBtn" Content="Start" HorizontalAlignment="Left" Margin="11,99,0,0" VerticalAlignment="Top" Width="75" IsEnabled="{Binding Enabled}" Click="StartBtn_Click"/>
-        <Button x:Name="StopBtn" Content="Stop" HorizontalAlignment="Left" Margin="121,99,0,0" VerticalAlignment="Top" Width="75" IsEnabled="{Binding Enabled}" Click="StopBtn_Click" />
+        <Label x:Name="Label" Content="COM Port:" HorizontalAlignment="Left" Margin="8,66,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="PortComboBox" HorizontalAlignment="Left" Margin="77,70,0,0" VerticalAlignment="Top" Width="120"/>
+        <Button x:Name="RefreshPortListButton" Content="Refresh" HorizontalAlignment="Left" Margin="202,70,0,0" VerticalAlignment="Top" Width="75"/>
+        <Button x:Name="ConnectButton" Content="Connect" HorizontalAlignment="Left" Margin="282,70,0,0" VerticalAlignment="Top" Width="75" Click="ConnectButton_Click"/>
+        <Button x:Name="SendPhoneToneButton" Content="Send Phone Tone" HorizontalAlignment="Left" Margin="12,122,0,0" VerticalAlignment="Top" Width="185" Click="SendPhoneToneButton_Click" IsEnabled="{Binding Enabled}"/>
+        <Button x:Name="StartBtn" Content="Start Recognition" HorizontalAlignment="Left" Margin="12,257,0,0" VerticalAlignment="Top" Width="110" IsEnabled="{Binding Enabled}" Click="StartBtn_Click"/>
+        <Label x:Name="Label1" Content="A simple test harness using the C# port of the EasyVR library." HorizontalAlignment="Left" Margin="8,10,0,0" VerticalAlignment="Top"/>
+        <TextBlock x:Name="RecogLabel" HorizontalAlignment="Left" Margin="12,147,0,0" VerticalAlignment="Top" Height="105" Width="495"><Run Text="Basic recognition of the the built in Wordset 1 Command List. "/><Run Text="Say one of the following:"/><LineBreak/><Run Text="Action"/><Run Text=","/><Run Text=" "/><Run Text="Move,"/><Run Text=" "/><Run Text="Turn,"/><Run Text=" "/><Run Text="Run,"/><Run Text=" "/><Run Text="Look,"/><Run Text=" "/><Run Text="Attack,"/><Run Text=" "/><Run Text="Stop"/><Run Text=" or "/><Run Text="Hello"/><LineBreak/><Run/><LineBreak/><Run Text="The response will be a number matching the following:"/><LineBreak/><Run Text="0=Action,1=Move,2=Turn,3=Run,4=Look,5=Attack,6=Stop,7=Hello"/></TextBlock>
 
 
     </Grid>

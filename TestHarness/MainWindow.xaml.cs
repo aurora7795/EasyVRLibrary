@@ -13,7 +13,7 @@ namespace TestHarness
     {
         private EasyVr _tempVr;
 
-        private readonly BackgroundWorker worker = new BackgroundWorker();
+        private readonly BackgroundWorker _worker = new BackgroundWorker();
 
         public bool Enabled
         {
@@ -29,40 +29,58 @@ namespace TestHarness
         {
             InitializeComponent();
 
-            string[] ports = SerialPort.GetPortNames();
-            foreach (string port in ports)
+            var ports = SerialPort.GetPortNames();
+            foreach (var port in ports)
             {
                 PortComboBox.Items.Add(port);
             }
 
 
-            worker.DoWork += worker_DoWork;
-            worker.RunWorkerCompleted += worker_RunWorkerCompleted;
-            worker.WorkerSupportsCancellation = true;
+            _worker.DoWork += worker_DoWork;
+            _worker.RunWorkerCompleted += worker_RunWorkerCompleted;
+            _worker.WorkerSupportsCancellation = true;
         }
         
         private void worker_DoWork(object sender, DoWorkEventArgs e)
         {
-            //_tempVr.RecognizeCommand(1);
+            //Logic for simple recognition activity
+
+            // Set a 3 second timeout for the recognition (optional)
+            _tempVr.SetTimeout(3);
+            //instruct the module to listen for a built in word from the 1st wordset
             _tempVr.RecognizeWord(1);
+
+            Dispatcher.BeginInvoke((Action)delegate {
+                ResponseTb.AppendText("Speak" + Environment.NewLine);
+                ResponseTb.ScrollToEnd();
+            });
+
+            //need to wait until HasFinished has completed before collecting results
             while (!_tempVr.HasFinished())
             {
-              
+                Dispatcher.BeginInvoke((Action)delegate {
+                    ResponseTb.AppendText(".");
+                });
             }
 
+            // Once HasFinished has returned true, we can ask the module for the index of the word it recognised. If you're new to using the EasyVR module,
+            // download the Easy VR Commander (http://www.veear.eu/downloads/) to interrogate the config of your module and see what the indexes correspond to
+            // Here is a standard setup at time of writing for an EASYVR 3 module:
+            // 0=Action,1=Move,2=Turn,3=Run,4=Look,5=Attack,6=Stop,7=Hello
+            var indexOfRecognisedWord = _tempVr.GetWord();
+            
             Dispatcher.BeginInvoke((Action)delegate {
-                ResponseTb.AppendText(_tempVr.GetWord() + Environment.NewLine);
+                ResponseTb.AppendText("Response: "+indexOfRecognisedWord + Environment.NewLine);
+                ResponseTb.AppendText("Recognition finished" + Environment.NewLine);
+                ResponseTb.ScrollToEnd();
             });
-
-            Dispatcher.BeginInvoke((Action)delegate {
-                ResponseTb.AppendText("Loop finished" + Environment.NewLine);
-            });
+            
         }
 
         private void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             StartBtn.IsEnabled = true;
-            StopBtn.IsEnabled = false;
+          
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)
@@ -88,24 +106,20 @@ namespace TestHarness
         {
             var temp1 = _tempVr.PlayPhoneTone(3, 30);
             ResponseTb.AppendText($"The return was: {temp1}" + Environment.NewLine);
+            ResponseTb.ScrollToEnd();
         }
 
         private void GetModuleIdButton_Click(object sender, RoutedEventArgs e)
         {
             var temp = _tempVr.GetId();
             ResponseTb.AppendText($"The return was: {temp}" + Environment.NewLine);
+            ResponseTb.ScrollToEnd();
         }
 
         private void StartBtn_Click(object sender, RoutedEventArgs e)
         {
-          worker.RunWorkerAsync();
+          _worker.RunWorkerAsync();
             StartBtn.IsEnabled = false;
-        }
-
-        private void StopBtn_Click(object sender, RoutedEventArgs e)
-        {
-            worker.CancelAsync();
-            StartBtn.IsEnabled = true;
         }
     }
 }
