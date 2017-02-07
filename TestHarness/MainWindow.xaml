@@ -18,6 +18,8 @@
         <Button x:Name="RefreshPortListButton" Content="Refresh" HorizontalAlignment="Left" Margin="201,10,0,0" VerticalAlignment="Top" Width="75"/>
         <Button x:Name="ConnectButton" Content="Connect" HorizontalAlignment="Left" Margin="281,10,0,0" VerticalAlignment="Top" Width="75" Click="ConnectButton_Click"/>
         <Button x:Name="SendPhoneToneButton" Content="Send Phone Tone" HorizontalAlignment="Left" Margin="11,62,0,0" VerticalAlignment="Top" Width="185" Click="SendPhoneToneButton_Click" IsEnabled="{Binding Enabled}"/>
+        <Button x:Name="StartBtn" Content="Start" HorizontalAlignment="Left" Margin="11,99,0,0" VerticalAlignment="Top" Width="75" IsEnabled="{Binding Enabled}" Click="StartBtn_Click"/>
+        <Button x:Name="StopBtn" Content="Stop" HorizontalAlignment="Left" Margin="121,99,0,0" VerticalAlignment="Top" Width="75" IsEnabled="{Binding Enabled}" Click="StopBtn_Click" />
 
 
     </Grid>

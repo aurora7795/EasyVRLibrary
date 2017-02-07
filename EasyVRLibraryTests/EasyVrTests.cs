@@ -1,6 +1,6 @@
 ﻿using EasyVRLibrary;
 using System;
-using System.Runtime.Remoting.Messaging;
+using System.Configuration;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using static EasyVRLibrary.Protocol;
@@ -127,18 +127,7 @@ namespace EasyVRLibrary.Tests
             //Assert
             Assert.IsTrue(response >= 0);
         }
-
-        [TestMethod]
-        public void HasFinished_Success()
-        {
-            //Arrange
-            var tempVr = new EasyVr(_comPort);
-            //Act
-            var response = tempVr.HasFinished();
-            //Assert
-            Assert.IsTrue(response);
-        }
-
+        
         [TestMethod]
         public void PlayPhoneTone_Success()
         {
@@ -421,9 +410,11 @@ namespace EasyVRLibrary.Tests
             var tempVr = new EasyVr(_comPort);
             //Act
             byte flags;
-            byte count;
+            int count;
             var response = tempVr.DumpGrammar(0, out flags, out count);
             //Assert
+            Assert.IsTrue(flags > 0);
+            Assert.IsTrue(count > 0);
             Assert.IsTrue(response);
 
         }
@@ -487,7 +478,7 @@ namespace EasyVRLibrary.Tests
         }
 
         [TestMethod()]
-        public void SetCommandLabelTest()
+        public void SetCommandLabelTest_Success()
         {
             var tempVr = new EasyVr(_comPort);
             tempVr.ResetAll();
@@ -506,6 +497,53 @@ namespace EasyVRLibrary.Tests
             Assert.IsTrue(response);
             Assert.IsTrue(name == "TESTCOM1");
             Assert.IsTrue(training == 0);
+        }
+
+        [TestMethod()]
+        public void DumpSoundTableTest_Success()
+        {
+            var tempVr = new EasyVr(_comPort);
+            tempVr.ResetAll();
+
+            string name;
+            int count;
+            var response = tempVr.DumpSoundTable(out name, out count);
+
+            Assert.IsTrue(response);
+            Assert.IsTrue(name == "SND_BEEP");
+            Assert.IsTrue(count == 1);
+        }
+
+        [TestMethod()]
+        public void FixMessagesTest_Success()
+        {
+            var tempVr = new EasyVr(_comPort);
+            tempVr.ResetAll();
+
+            var response = tempVr.FixMessages(true);
+
+            Assert.IsTrue(response);
+        }
+
+        [TestMethod()]
+        public void GetNextWordLabelTest_Success()
+        {
+            //Arrange
+            var tempVr = new EasyVr(_comPort);
+           
+            byte flags;
+            int count;
+            var response = tempVr.DumpGrammar(0, out flags, out count);
+            Assert.IsTrue(response);
+
+            //Act
+            string name;
+            response = tempVr.GetNextWordLabel(out name);
+
+            //Assert
+            Assert.IsTrue(response);
+            Assert.IsTrue(name == "ROBOT");
+          
         }
     }
 }

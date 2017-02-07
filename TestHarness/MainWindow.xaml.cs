@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO.Ports;
 using System.Windows;
 using EasyVRLibrary;
@@ -12,7 +13,7 @@ namespace TestHarness
     {
         private EasyVr _tempVr;
 
-       
+        private readonly BackgroundWorker worker = new BackgroundWorker();
 
         public bool Enabled
         {
@@ -34,9 +35,37 @@ namespace TestHarness
                 PortComboBox.Items.Add(port);
             }
 
+
+            worker.DoWork += worker_DoWork;
+            worker.RunWorkerCompleted += worker_RunWorkerCompleted;
+            worker.WorkerSupportsCancellation = true;
+        }
+        
+        private void worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            //_tempVr.RecognizeCommand(1);
+            _tempVr.RecognizeWord(1);
+            while (!_tempVr.HasFinished())
+            {
+              
+            }
+
+            Dispatcher.BeginInvoke((Action)delegate {
+                ResponseTb.AppendText(_tempVr.GetWord() + Environment.NewLine);
+            });
+
+            Dispatcher.BeginInvoke((Action)delegate {
+                ResponseTb.AppendText("Loop finished" + Environment.NewLine);
+            });
         }
 
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            StartBtn.IsEnabled = true;
+            StopBtn.IsEnabled = false;
+        }
+
+        private void Window_Closing(object sender, CancelEventArgs e)
         {
             _tempVr?.ClosePort();
         }
@@ -65,6 +94,18 @@ namespace TestHarness
         {
             var temp = _tempVr.GetId();
             ResponseTb.AppendText($"The return was: {temp}" + Environment.NewLine);
+        }
+
+        private void StartBtn_Click(object sender, RoutedEventArgs e)
+        {
+          worker.RunWorkerAsync();
+            StartBtn.IsEnabled = false;
+        }
+
+        private void StopBtn_Click(object sender, RoutedEventArgs e)
+        {
+            worker.CancelAsync();
+            StartBtn.IsEnabled = true;
         }
     }
 }
