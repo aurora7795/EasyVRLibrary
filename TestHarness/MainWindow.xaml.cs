@@ -67,6 +67,8 @@ namespace TestHarness
             // download the Easy VR Commander (http://www.veear.eu/downloads/) to interrogate the config of your module and see what the indexes correspond to
             // Here is a standard setup at time of writing for an EASYVR 3 module:
             // 0=Action,1=Move,2=Turn,3=Run,4=Look,5=Attack,6=Stop,7=Hello
+
+            // NOTE: Depending on what you are looking to recognise, you may need a different method to GetWord() - GetToken and GetCommand are also available
             var indexOfRecognisedWord = _tempVr.GetWord();
             
             Dispatcher.BeginInvoke((Action)delegate {

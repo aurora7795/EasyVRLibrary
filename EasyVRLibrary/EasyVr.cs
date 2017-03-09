@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.IO.Ports;
 using System.Linq;
@@ -17,39 +18,34 @@ namespace EasyVRLibrary
         public const int EASYVR_PLAY_TIMEOUT = 5000;
         public const int EASYVR_TOKEN_TIMEOUT = 1500;
         public const int DEF_TIMEOUT = EASYVR_RX_TIMEOUT;
+        private static SerialPort _serialPort; // communication interface for the EasyVR module
+        private readonly Status _status = new Status();
+        protected sbyte Group; // last used group (cached by the module)
         public static int WAKE_TIMEOUT { get; } = EASYVR_WAKE_TIMEOUT;
         public static int STORAGE_TIMEOUT { get; } = EASYVR_STORAGE_TIMEOUT;
-
-        private static SerialPort _serialPort; // communication interface for the EasyVR module
-
-        private readonly Status _status = new Status();
-
-        protected sbyte Group; // last used group (cached by the module)
-
         private int Value { get; set; }
-
         public sbyte INFINITE { get; } = -1;
-
         public sbyte NO_TIMEOUT { get; } = 0;
         public int PLAY_TIMEOUT { get; } = EASYVR_PLAY_TIMEOUT;
         public int TOKEN_TIMEOUT { get; } = EASYVR_TOKEN_TIMEOUT;
+        protected sbyte Id { get; }
 
+        /// <summary>
+        ///     Constructor for the EasyVr object that coordinates all commands to the Easy VR Box. See examples for usage.
+        /// </summary>
+        /// <param name="portName">Port of the Easy VR module to connect to</param>
+        /// <param name="baudRate">BaudRate of the serial port connection to the Easy VR module</param>
         public EasyVr(string portName, int baudRate = 9600)
         {
             if (_serialPort != null) return;
             // Create the serial port with basic settings
             _serialPort = new SerialPort(portName, baudRate, Parity.None, 8, StopBits.One);
             _serialPort.Open();
-
             Value = -1;
             Group = -1;
             Id = -1;
             _status.V = 0;
         }
-
-        protected sbyte Id { get; }
-
-        // command management
 
         /// <summary>
         ///     Adds a new custom command to a group.
@@ -79,7 +75,8 @@ namespace EasyVRLibrary
         }
 
         /// <summary>
-        ///     Performs bridge mode between the EasyVR serial port and the specified port in a continuous loop.It can be aborted by
+        ///     Performs bridge mode between the EasyVR serial port and the specified port in a continuous loop.It can be aborted
+        ///     by
         ///     sending a question mark('?') on the target port.
         /// </summary>
         /// <param name="port">is the target serial port (usually the PC serial port)</param>
@@ -87,8 +84,6 @@ namespace EasyVRLibrary
         {
             throw new NotImplementedException();
         }
-
-        // bridge mode
 
         /// <summary>
         ///     Tests if bridge mode has been requested on the specified port
@@ -133,9 +128,9 @@ namespace EasyVRLibrary
             SendArgument(-1);
             SendArgument(0);
 
-            char rx = GetResponse(STORAGE_TIMEOUT);
+            var rx = GetResponse(STORAGE_TIMEOUT);
             ReadStatus(rx);
-            return (_status.V == 0);
+            return _status.V == 0;
         }
 
         public void ClosePort()
@@ -159,9 +154,6 @@ namespace EasyVRLibrary
             }
             return false;
         }
-
-
-        // sound table functions
 
         /// <summary>
         ///     Starts listening for a SonicNet token. Manually check for completion with #hasFinished().
@@ -219,7 +211,6 @@ namespace EasyVRLibrary
                 count = 0;
                 flags = 0;
                 return false;
-
             }
             flags = (byte)(rx == -1 ? 32 : rx);
 
@@ -306,26 +297,18 @@ namespace EasyVRLibrary
             SendCommand(CMD_DUMP_SX);
 
             if (GetResponse() != STS_TABLE_SX)
-            {
                 return false;
-            }
 
             int rx;
             if (!ReceiveArgument(out rx))
-            {
                 return false;
-            }
             count = rx << 5;
             if (!ReceiveArgument(out rx))
-            {
                 return false;
-            }
             count |= rx;
 
             if (!ReceiveArgument(out rx))
-            {
                 return false;
-            }
             var length = rx;
 
             var tempString = new StringBuilder();
@@ -334,15 +317,11 @@ namespace EasyVRLibrary
             {
                 char rxChar;
                 if (!ReceiveArgument(out rxChar))
-                {
                     return false;
-                }
                 if (rx == '^')
                 {
                     if (!ReceiveArgument(out rxChar))
-                    {
                         return false;
-                    }
                     tempString.Append(ArgumentEncoding.ConvertArgumentCode(rxChar));
                     --length;
                 }
@@ -350,7 +329,6 @@ namespace EasyVRLibrary
                 {
                     tempString.Append(rxChar);
                 }
-
             }
             return true;
         }
@@ -404,7 +382,6 @@ namespace EasyVRLibrary
             SendArgument(name.Length + escapedCharsNeeded);
 
             foreach (var c in name)
-            {
                 if (char.IsDigit(c))
                 {
                     SendCharacter('^');
@@ -418,7 +395,6 @@ namespace EasyVRLibrary
                 {
                     SendCharacter('_');
                 }
-            }
 
             return GetResponse(STORAGE_TIMEOUT) == STS_SUCCESS;
         }
@@ -529,9 +505,6 @@ namespace EasyVRLibrary
             return GetResponse() == STS_SUCCESS;
         }
 
-
-        // analyse result
-
         /// <summary>
         ///     Gets the recognised command index if any.
         /// </summary>
@@ -552,7 +525,7 @@ namespace EasyVRLibrary
         /// <returns>true if the operation is successful</returns>
         public bool GetGroupMask(int mask)
         {
-            //todo: go over this one with dad
+            //todo: go over this one 
 
             throw new NotImplementedException();
 
@@ -605,15 +578,19 @@ namespace EasyVRLibrary
         }
 
         /// <summary>
-        /// Retrieves the name and training data of a custom command.
+        ///     Retrieves the name and training data of a custom command.
         /// </summary>
         /// <param name="group">(0-16) is the target group, or one of the values in #Groups</param>
         /// <param name="index">(0-31) is the index of the command within the selected group</param>
-        /// <param name="name">points to an array of at least 32 characters that holds the command 
-        /// label when the function returns</param>
-        /// <param name="training">training is a variable that holds the training count when the function returns.
-        /// Additional information about training is available through the functions #isConflict() 
-        /// and #getWord() or #getCommand()</param>
+        /// <param name="name">
+        ///     points to an array of at least 32 characters that holds the command
+        ///     label when the function returns
+        /// </param>
+        /// <param name="training">
+        ///     training is a variable that holds the training count when the function returns.
+        ///     Additional information about training is available through the functions #isConflict()
+        ///     and #getWord() or #getCommand()
+        /// </param>
         /// <returns>true if the operation is successful</returns>
         public bool DumpCommand(int group, int index, ref string name, ref int training)
         {
@@ -714,7 +691,7 @@ namespace EasyVRLibrary
         /// </returns>
         public int GetToken()
         {
-            if (_status.Token) return ArgumentEncoding.ConvertArgumentCode((char) Value);
+            if (_status.Token) return ArgumentEncoding.ConvertArgumentCode((char)Value);
             return -1;
         }
 
@@ -727,8 +704,16 @@ namespace EasyVRLibrary
         /// </returns>
         public int GetWord()
         {
-            if (_status.Builtin) return ArgumentEncoding.ConvertArgumentCode((char)Value);
-            return -1;
+            if (!_status.Builtin) return -1;
+            try
+            {
+                return ArgumentEncoding.ConvertArgumentCode((char)Value);
+            }
+            catch (InvalidEnumArgumentException)
+            {
+                // if for any reason the value coming back from the argument code is out, send back -1 (error)
+                return -1;
+            }
         }
 
         /// <summary>
@@ -1226,9 +1211,6 @@ namespace EasyVRLibrary
             return -1;
         }
 
-
-        // pin I/O functions
-
         /// <summary>
         ///     Configures an I/O pin as an output and sets its value
         /// </summary>
@@ -1309,10 +1291,12 @@ namespace EasyVRLibrary
         }
 
         /// <summary>
-        /// Retrieves the name of a command contained in a custom grammar. It must be called after #dumpGrammar()
+        ///     Retrieves the name of a command contained in a custom grammar. It must be called after #dumpGrammar()
         /// </summary>
-        /// <param name="name">points to an array of at least 32 characters that holds the command label when 
-        /// the function returns</param>
+        /// <param name="name">
+        ///     points to an array of at least 32 characters that holds the command label when
+        ///     the function returns
+        /// </param>
         /// <returns>true if the operation is successful</returns>
         public bool GetNextWordLabel(out string name)
         {
@@ -1324,7 +1308,7 @@ namespace EasyVRLibrary
             if (count == -1)
                 count = (char)32;
 
-            int length = ArgumentEncoding.ConvertArgumentCode(count);
+            var length = ArgumentEncoding.ConvertArgumentCode(count);
 
             var tempString = new StringBuilder();
 
@@ -1352,7 +1336,7 @@ namespace EasyVRLibrary
             name = tempString.ToString();
             return true;
         }
-      
+
         /// <summary>
         ///     Starts training of a custom command. Results are available after #hasFinished() returns true.
         ///     The module is busy until training completes and it cannot accept other commands. You can interrupt training with
@@ -1490,7 +1474,6 @@ namespace EasyVRLibrary
             response = ArgumentEncoding.ConvertArgumentCode(GetResponse());
             return response >= -1 && response <= 31;
         }
-
 
         private static void SendArgument(int argument)
         {

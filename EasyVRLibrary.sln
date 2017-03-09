@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyVRLibrary", "EasyVRLibr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestHarness", "TestHarness\TestHarness.csproj", "{DD42D845-63E8-4E8D-BDFA-0A522D4B4F9C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestHarnessMvvm", "TestHarnessMvvm\TestHarnessMvvm.csproj", "{7A5ABCAF-7051-4810-9058-F82A75E3CF7C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{DD42D845-63E8-4E8D-BDFA-0A522D4B4F9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD42D845-63E8-4E8D-BDFA-0A522D4B4F9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD42D845-63E8-4E8D-BDFA-0A522D4B4F9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A5ABCAF-7051-4810-9058-F82A75E3CF7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A5ABCAF-7051-4810-9058-F82A75E3CF7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A5ABCAF-7051-4810-9058-F82A75E3CF7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A5ABCAF-7051-4810-9058-F82A75E3CF7C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
